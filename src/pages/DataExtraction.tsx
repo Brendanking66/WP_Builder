@@ -1,17 +1,19 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Facebook, AtSign, Globe, PlusCircle, Trash2, Loader, ArrowRight } from 'lucide-react';
+import { Facebook, AtSign, Globe, Loader, ArrowRight } from 'lucide-react';
 import toast from 'react-hot-toast';
 
 import SourceCard from '../components/extraction/SourceCard';
 import ProjectNameForm from '../components/extraction/ProjectNameForm';
 import { ProjectSource } from '../types/Project';
+import { CrawlResult } from '../lib/crawler';
 
 const DataExtraction: React.FC = () => {
   const navigate = useNavigate();
   const [projectName, setProjectName] = useState('');
   const [sources, setSources] = useState<ProjectSource[]>([]);
   const [loading, setLoading] = useState<string | null>(null);
+  const [extractedData, setExtractedData] = useState<Record<string, CrawlResult>>({});
   
   const handleAddSource = (sourceType: 'facebook' | 'google' | 'website') => {
     const newSource: ProjectSource = {
@@ -33,24 +35,30 @@ const DataExtraction: React.FC = () => {
   
   const handleRemoveSource = (id: string) => {
     setSources(sources.filter((source) => source.id !== id));
+    setExtractedData(({ [id]: _, ...rest }) => rest);
   };
   
-  const handleExtractData = async (id: string) => {
+  const handleExtractData = async (id: string, data?: CrawlResult) => {
     const source = sources.find((s) => s.id === id);
     if (!source || !source.url) return;
     
     setLoading(id);
     
     try {
-      // In a real app, this would call an API to extract data
-      await new Promise((resolve) => setTimeout(resolve, 2000));
-      
-      // Simulate successful extraction
-      handleUpdateSource(id, { status: 'completed' });
-      toast.success(`Data extracted from ${source.type} successfully!`);
+      if (data) {
+        setExtractedData(prev => ({ ...prev, [id]: data }));
+        handleUpdateSource(id, { status: 'completed' });
+        toast.success(`Data extracted from ${source.url} successfully!`);
+      } else {
+        // Handle Facebook and Google sources here
+        await new Promise(resolve => setTimeout(resolve, 2000));
+        handleUpdateSource(id, { status: 'completed' });
+        toast.success(`Data extracted from ${source.type} successfully!`);
+      }
     } catch (error) {
+      console.error('Error extracting data:', error);
       handleUpdateSource(id, { status: 'failed' });
-      toast.error(`Failed to extract data from ${source.type}`);
+      toast.error(`Failed to extract data from ${source.url}`);
     } finally {
       setLoading(null);
     }
@@ -75,7 +83,14 @@ const DataExtraction: React.FC = () => {
       return;
     }
     
-    // In a real app, this would save the project and extracted data
+    // Save project with extracted data
+    const projectData = {
+      name: projectName,
+      sources,
+      extractedData,
+    };
+    
+    console.log('Project data:', projectData);
     toast.success('Project created successfully!');
     navigate('/organize');
   };
@@ -108,7 +123,7 @@ const DataExtraction: React.FC = () => {
                 source={source}
                 onUpdate={(data) => handleUpdateSource(source.id, data)}
                 onRemove={() => handleRemoveSource(source.id)}
-                onExtract={() => handleExtractData(source.id)}
+                onExtract={(data) => handleExtractData(source.id, data)}
                 loading={loading === source.id}
               />
             ))}

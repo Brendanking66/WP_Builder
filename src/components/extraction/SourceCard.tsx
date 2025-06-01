@@ -1,12 +1,13 @@
 import React, { useState } from 'react';
 import { Facebook, AtSign, Globe, Trash2, ExternalLink, RefreshCw, Check, X } from 'lucide-react';
 import { ProjectSource } from '../../types/Project';
+import { crawlWebsite } from '../../lib/crawler';
 
 interface SourceCardProps {
   source: ProjectSource;
   onUpdate: (data: Partial<ProjectSource>) => void;
   onRemove: () => void;
-  onExtract: () => void;
+  onExtract: (data?: any) => void;
   loading: boolean;
 }
 
@@ -53,6 +54,20 @@ const SourceCard: React.FC<SourceCardProps> = ({
         return <X size={16} className="text-red-600" />;
       default:
         return null;
+    }
+  };
+
+  const handleExtract = async () => {
+    if (source.type === 'website' && source.url) {
+      try {
+        const data = await crawlWebsite(source.url);
+        onExtract(data);
+      } catch (error) {
+        console.error('Error extracting data:', error);
+        onUpdate({ status: 'failed' });
+      }
+    } else {
+      onExtract();
     }
   };
   
@@ -174,7 +189,7 @@ const SourceCard: React.FC<SourceCardProps> = ({
       <div className="mt-4 flex justify-end">
         <button
           type="button"
-          onClick={onExtract}
+          onClick={handleExtract}
           disabled={!source.url || loading}
           className={`flex items-center btn-secondary ${
             !source.url ? 'opacity-50 cursor-not-allowed' : ''
