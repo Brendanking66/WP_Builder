@@ -9,9 +9,9 @@ const Footer: React.FC = () => {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
           <div>
-            <h3 className="text-lg font-semibold mb-4">WP Builder</h3>
+            <h3 className="text-lg font-semibold mb-4">pressmatic.ai</h3>
             <p className="text-gray-300 text-sm">
-              Automate the generation of professional WordPress websites for small businesses.
+              AI-powered WordPress website builder for small businesses.
             </p>
           </div>
           
@@ -37,7 +37,7 @@ const Footer: React.FC = () => {
         </div>
         
         <div className="mt-8 pt-6 border-t border-gray-700 flex flex-col md:flex-row justify-between items-center">
-          <p className="text-sm text-gray-400">© {year} WP Builder. All rights reserved.</p>
+          <p className="text-sm text-gray-400">© {year} pressmatic.ai. All rights reserved.</p>
           <div className="flex space-x-4 mt-4 md:mt-0">
             <a href="#" className="text-gray-400 hover:text-white transition-colors">
               <Github size={20} />

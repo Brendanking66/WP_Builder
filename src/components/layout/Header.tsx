@@ -25,7 +25,7 @@ const Header: React.FC = () => {
         <div className="flex justify-between h-16">
           <div className="flex items-center">
             <Link to="/" className="flex-shrink-0 flex items-center">
-              <span className="text-blue-700 font-bold text-xl">WP Builder</span>
+              <span className="text-blue-700 font-bold text-xl">pressmatic.ai</span>
             </Link>
           </div>
           
