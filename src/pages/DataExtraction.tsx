@@ -6,7 +6,7 @@ import toast from 'react-hot-toast';
 import SourceCard from '../components/extraction/SourceCard';
 import ProjectNameForm from '../components/extraction/ProjectNameForm';
 import { ProjectSource } from '../types/Project';
-import { CrawlResult } from '../lib/crawler';
+import { CrawlResult } from '../types/Project';
 
 const DataExtraction: React.FC = () => {
   const navigate = useNavigate();
@@ -77,9 +77,10 @@ const DataExtraction: React.FC = () => {
       return;
     }
     
-    const incomplete = sources.some((source) => !source.url);
-    if (incomplete) {
-      toast.error('Please fill in all source URLs');
+    // Check if all sources have been extracted successfully
+    const pendingSources = sources.filter(source => source.status !== 'completed');
+    if (pendingSources.length > 0) {
+      toast.error('Please extract data from all sources before continuing');
       return;
     }
     

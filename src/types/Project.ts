@@ -19,3 +19,20 @@ export interface Project {
   previewImage?: string;
   sources: ProjectSource[];
 }
+
+export interface CrawlResult {
+  title: string;
+  description: string;
+  logo?: string;
+  navigation: string[];
+  sections: {
+    type: string;
+    content: any;
+  }[];
+  contact?: {
+    email?: string;
+    phone?: string;
+    address?: string;
+    socialLinks?: string[];
+  };
+}
