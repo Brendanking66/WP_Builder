@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { supabase } from '../lib/supabase';
 import { Project } from '../types/Project';
 
 export const useProjects = () => {
@@ -9,46 +10,17 @@ export const useProjects = () => {
   useEffect(() => {
     const fetchProjects = async () => {
       try {
-        // In a real app, this would fetch from an API
-        // For demo purposes, we'll return mock data after a delay
-        await new Promise((resolve) => setTimeout(resolve, 1000));
-        
-        // Mock data
-        const mockProjects: Project[] = [
-          {
-            id: '1',
-            name: 'ABC Plumbing',
-            description: 'Local plumbing company website',
-            status: 'completed',
-            createdAt: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString(),
-            updatedAt: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString(),
-            previewImage: 'https://images.pexels.com/photos/8347501/pexels-photo-8347501.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1',
-            sources: [],
-          },
-          {
-            id: '2',
-            name: 'Green Cafe',
-            description: 'Organic cafe and restaurant',
-            status: 'in-progress',
-            createdAt: new Date(Date.now() - 15 * 24 * 60 * 60 * 1000).toISOString(),
-            updatedAt: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000).toISOString(),
-            previewImage: 'https://images.pexels.com/photos/1855214/pexels-photo-1855214.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1',
-            sources: [],
-          },
-          {
-            id: '3',
-            name: 'Fitness Studio',
-            description: 'Local gym and fitness center',
-            status: 'draft',
-            createdAt: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000).toISOString(),
-            updatedAt: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000).toISOString(),
-            sources: [],
-          },
-        ];
-        
-        setProjects(mockProjects);
+        const { data, error } = await supabase
+          .from('projects')
+          .select('*')
+          .order('created_at', { ascending: false });
+
+        if (error) throw error;
+
+        setProjects(data || []);
       } catch (err: any) {
         setError(err);
+        console.error('Error fetching projects:', err);
       } finally {
         setLoading(false);
       }
@@ -57,5 +29,72 @@ export const useProjects = () => {
     fetchProjects();
   }, []);
 
-  return { projects, loading, error };
+  const createProject = async (project: Omit<Project, 'id' | 'createdAt' | 'updatedAt'>) => {
+    try {
+      const { data, error } = await supabase
+        .from('projects')
+        .insert([{
+          ...project,
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString(),
+        }])
+        .select()
+        .single();
+
+      if (error) throw error;
+
+      setProjects([data, ...projects]);
+      return data;
+    } catch (err: any) {
+      console.error('Error creating project:', err);
+      throw err;
+    }
+  };
+
+  const updateProject = async (id: string, updates: Partial<Project>) => {
+    try {
+      const { data, error } = await supabase
+        .from('projects')
+        .update({
+          ...updates,
+          updated_at: new Date().toISOString(),
+        })
+        .eq('id', id)
+        .select()
+        .single();
+
+      if (error) throw error;
+
+      setProjects(projects.map(p => p.id === id ? data : p));
+      return data;
+    } catch (err: any) {
+      console.error('Error updating project:', err);
+      throw err;
+    }
+  };
+
+  const deleteProject = async (id: string) => {
+    try {
+      const { error } = await supabase
+        .from('projects')
+        .delete()
+        .eq('id', id);
+
+      if (error) throw error;
+
+      setProjects(projects.filter(p => p.id !== id));
+    } catch (err: any) {
+      console.error('Error deleting project:', err);
+      throw err;
+    }
+  };
+
+  return {
+    projects,
+    loading,
+    error,
+    createProject,
+    updateProject,
+    deleteProject,
+  };
 };
