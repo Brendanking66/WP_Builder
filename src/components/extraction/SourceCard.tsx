@@ -60,7 +60,11 @@ const SourceCard: React.FC<SourceCardProps> = ({
   const handleExtract = async () => {
     if (source.type === 'website' && source.url) {
       try {
-        const cleanUrl = source.url.replace(/^https?:\/\//, '');
+        // Remove any protocol and trailing slashes from the URL
+        const cleanUrl = source.url.trim().replace(/^https?:\/\//, '').replace(/\/+$/, '');
+        if (!cleanUrl) {
+          throw new Error('Please enter a valid URL');
+        }
         const data = await crawlWebsite(cleanUrl);
         onExtract(data);
       } catch (error) {
