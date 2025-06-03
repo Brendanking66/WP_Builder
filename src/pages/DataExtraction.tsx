@@ -7,9 +7,11 @@ import SourceCard from '../components/extraction/SourceCard';
 import ProjectNameForm from '../components/extraction/ProjectNameForm';
 import { ProjectSource } from '../types/Project';
 import { CrawlResult } from '../types/Project';
+import { useProjects } from '../hooks/useProjects';
 
 const DataExtraction: React.FC = () => {
   const navigate = useNavigate();
+  const { createProject } = useProjects();
   const [projectName, setProjectName] = useState('');
   const [sources, setSources] = useState<ProjectSource[]>([]);
   const [loading, setLoading] = useState<string | null>(null);
@@ -64,7 +66,7 @@ const DataExtraction: React.FC = () => {
     }
   };
   
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
     if (!projectName.trim()) {
@@ -84,16 +86,20 @@ const DataExtraction: React.FC = () => {
       return;
     }
     
-    // Save project with extracted data
-    const projectData = {
-      name: projectName,
-      sources,
-      extractedData,
-    };
-    
-    console.log('Project data:', projectData);
-    toast.success('Project created successfully!');
-    navigate('/organize');
+    try {
+      // Create the project in Supabase
+      const project = await createProject({
+        name: projectName,
+        status: 'in-progress',
+        sources,
+      });
+
+      toast.success('Project created successfully!');
+      navigate('/organize');
+    } catch (error) {
+      console.error('Error creating project:', error);
+      toast.error('Failed to create project. Please try again.');
+    }
   };
   
   return (

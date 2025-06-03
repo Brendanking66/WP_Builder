@@ -1,6 +1,4 @@
-import { CrawlResult } from '../types/Project';
-
-export async function crawlWebsite(url: string): Promise<CrawlResult> {
+export async function crawlWebsite(url: string): Promise<any> {
   try {
     const response = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/crawler`, {
       method: 'POST',
@@ -16,7 +14,8 @@ export async function crawlWebsite(url: string): Promise<CrawlResult> {
       throw new Error(error.error || 'Failed to crawl website');
     }
 
-    return await response.json();
+    const data = await response.json();
+    return data;
   } catch (error) {
     console.error('Error crawling website:', error);
     throw error;

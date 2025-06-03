@@ -60,7 +60,8 @@ const SourceCard: React.FC<SourceCardProps> = ({
   const handleExtract = async () => {
     if (source.type === 'website' && source.url) {
       try {
-        const data = await crawlWebsite(source.url);
+        const cleanUrl = source.url.replace(/^https?:\/\//, '');
+        const data = await crawlWebsite(cleanUrl);
         onExtract(data);
       } catch (error) {
         console.error('Error extracting data:', error);
