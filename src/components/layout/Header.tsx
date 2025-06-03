@@ -1,10 +1,13 @@
 import React, { useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { Menu, X, ChevronDown } from 'lucide-react';
+import { Menu, X } from 'lucide-react';
+import UserMenu from '../auth/UserMenu';
+import { useAuth } from '../../hooks/useAuth';
 
 const Header: React.FC = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const location = useLocation();
+  const { user } = useAuth();
   
   const navItems = [
     { name: 'Dashboard', path: '/' },
@@ -45,6 +48,11 @@ const Header: React.FC = () => {
               </Link>
             ))}
           </nav>
+
+          {/* User menu */}
+          <div className="hidden md:flex md:items-center">
+            <UserMenu user={user} />
+          </div>
           
           {/* Mobile menu button */}
           <div className="flex items-center md:hidden">
@@ -64,7 +72,7 @@ const Header: React.FC = () => {
         </div>
       </div>
 
-      {/* Mobile menu, show/hide based on menu state */}
+      {/* Mobile menu */}
       {isMenuOpen && (
         <div className="md:hidden">
           <div className="pt-2 pb-3 space-y-1">
@@ -82,6 +90,11 @@ const Header: React.FC = () => {
                 {item.name}
               </Link>
             ))}
+          </div>
+          <div className="pt-4 pb-3 border-t border-gray-200">
+            <div className="px-4">
+              <UserMenu user={user} />
+            </div>
           </div>
         </div>
       )}
