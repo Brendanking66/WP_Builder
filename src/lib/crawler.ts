@@ -1,4 +1,6 @@
-export async function crawlWebsite(url: string): Promise<any> {
+import { CrawlResult } from '../types/Project';
+
+export async function crawlWebsite(url: string): Promise<CrawlResult> {
   try {
     const response = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/crawler`, {
       method: 'POST',

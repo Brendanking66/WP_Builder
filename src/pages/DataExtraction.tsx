@@ -2,12 +2,13 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Facebook, AtSign, Globe, Loader, ArrowRight } from 'lucide-react';
 import toast from 'react-hot-toast';
+import { useProjects } from '../hooks/useProjects';
+import { supabase } from '../lib/supabase';
 
 import SourceCard from '../components/extraction/SourceCard';
 import ProjectNameForm from '../components/extraction/ProjectNameForm';
 import { ProjectSource } from '../types/Project';
 import { CrawlResult } from '../types/Project';
-import { useProjects } from '../hooks/useProjects';
 
 const DataExtraction: React.FC = () => {
   const navigate = useNavigate();
@@ -85,13 +86,22 @@ const DataExtraction: React.FC = () => {
       toast.error('Please extract data from all sources before continuing');
       return;
     }
-    
+
     try {
+      // Get the current user
+      const { data: { user } } = await supabase.auth.getUser();
+      
+      if (!user) {
+        toast.error('Please sign in to create a project');
+        return;
+      }
+
       // Create the project in Supabase
       const project = await createProject({
         name: projectName,
         status: 'in-progress',
         sources,
+        user_id: user.id
       });
 
       toast.success('Project created successfully!');
