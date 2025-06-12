@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { User, LogOut } from 'lucide-react';
-import { supabase } from '../../lib/supabase';
+import { supabase, isSupabaseConfigured } from '../../lib/supabase';
 import AuthModal from './AuthModal';
 
 interface UserMenuProps {
@@ -11,7 +11,9 @@ const UserMenu: React.FC<UserMenuProps> = ({ user }) => {
   const [isModalOpen, setIsModalOpen] = useState(false);
 
   const handleSignOut = async () => {
-    await supabase.auth.signOut();
+    if (isSupabaseConfigured() && supabase) {
+      await supabase.auth.signOut();
+    }
   };
 
   if (!user) {

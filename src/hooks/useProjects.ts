@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { supabase } from '../lib/supabase';
+import { supabase, isSupabaseConfigured } from '../lib/supabase';
 import { Project } from '../types/Project';
 
 export const useProjects = () => {
@@ -8,9 +8,16 @@ export const useProjects = () => {
   const [error, setError] = useState<Error | null>(null);
 
   useEffect(() => {
+    if (!isSupabaseConfigured()) {
+      // Return mock data when Supabase is not configured
+      setProjects([]);
+      setLoading(false);
+      return;
+    }
+
     const fetchProjects = async () => {
       try {
-        const { data, error } = await supabase
+        const { data, error } = await supabase!
           .from('projects')
           .select('*')
           .order('created_at', { ascending: false });
@@ -30,8 +37,12 @@ export const useProjects = () => {
   }, []);
 
   const createProject = async (project: Omit<Project, 'id' | 'createdAt' | 'updatedAt'>) => {
+    if (!isSupabaseConfigured()) {
+      throw new Error('Supabase is not configured');
+    }
+
     try {
-      const { data, error } = await supabase
+      const { data, error } = await supabase!
         .from('projects')
         .insert([{
           ...project,
@@ -52,8 +63,12 @@ export const useProjects = () => {
   };
 
   const updateProject = async (id: string, updates: Partial<Project>) => {
+    if (!isSupabaseConfigured()) {
+      throw new Error('Supabase is not configured');
+    }
+
     try {
-      const { data, error } = await supabase
+      const { data, error } = await supabase!
         .from('projects')
         .update({
           ...updates,
@@ -74,8 +89,12 @@ export const useProjects = () => {
   };
 
   const deleteProject = async (id: string) => {
+    if (!isSupabaseConfigured()) {
+      throw new Error('Supabase is not configured');
+    }
+
     try {
-      const { error } = await supabase
+      const { error } = await supabase!
         .from('projects')
         .delete()
         .eq('id', id);

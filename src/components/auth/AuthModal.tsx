@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { X } from 'lucide-react';
-import { supabase } from '../../lib/supabase';
+import { supabase, isSupabaseConfigured } from '../../lib/supabase';
 import toast from 'react-hot-toast';
 
 interface AuthModalProps {
@@ -16,18 +16,24 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose }) => {
 
   const handleEmailAuth = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    if (!isSupabaseConfigured()) {
+      toast.error('Authentication is not configured. Please set up Supabase.');
+      return;
+    }
+
     setLoading(true);
 
     try {
       if (isSignUp) {
-        const { error } = await supabase.auth.signUp({
+        const { error } = await supabase!.auth.signUp({
           email,
           password,
         });
         if (error) throw error;
         toast.success('Check your email for the confirmation link!');
       } else {
-        const { error } = await supabase.auth.signInWithPassword({
+        const { error } = await supabase!.auth.signInWithPassword({
           email,
           password,
         });
@@ -43,8 +49,13 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose }) => {
   };
 
   const handleGoogleAuth = async () => {
+    if (!isSupabaseConfigured()) {
+      toast.error('Authentication is not configured. Please set up Supabase.');
+      return;
+    }
+
     try {
-      const { error } = await supabase.auth.signInWithOAuth({
+      const { error } = await supabase!.auth.signInWithOAuth({
         provider: 'google',
       });
       if (error) throw error;
@@ -69,6 +80,14 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose }) => {
           {isSignUp ? 'Create an Account' : 'Sign In'}
         </h2>
 
+        {!isSupabaseConfigured() && (
+          <div className="mb-4 p-3 bg-yellow-50 border border-yellow-200 rounded-md">
+            <p className="text-sm text-yellow-800">
+              Authentication is not configured. Please set up Supabase to enable sign in.
+            </p>
+          </div>
+        )}
+
         <form onSubmit={handleEmailAuth} className="space-y-4">
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -80,6 +99,7 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose }) => {
               onChange={(e) => setEmail(e.target.value)}
               className="input-field"
               required
+              disabled={!isSupabaseConfigured()}
             />
           </div>
 
@@ -93,13 +113,14 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose }) => {
               onChange={(e) => setPassword(e.target.value)}
               className="input-field"
               required
+              disabled={!isSupabaseConfigured()}
             />
           </div>
 
           <button
             type="submit"
             className="btn-primary w-full"
-            disabled={loading}
+            disabled={loading || !isSupabaseConfigured()}
           >
             {loading ? 'Loading...' : isSignUp ? 'Sign Up' : 'Sign In'}
           </button>
@@ -112,6 +133,7 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose }) => {
         <button
           onClick={handleGoogleAuth}
           className="mt-4 w-full btn-outline flex items-center justify-center"
+          disabled={!isSupabaseConfigured()}
         >
           <img
             src="https://www.google.com/favicon.ico"
@@ -125,6 +147,7 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose }) => {
           <button
             onClick={() => setIsSignUp(!isSignUp)}
             className="text-sm text-blue-600 hover:text-blue-800"
+            disabled={!isSupabaseConfigured()}
           >
             {isSignUp
               ? 'Already have an account? Sign in'

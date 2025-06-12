@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { Facebook, AtSign, Globe, Loader, ArrowRight } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { useProjects } from '../hooks/useProjects';
-import { supabase } from '../lib/supabase';
+import { isSupabaseConfigured } from '../lib/supabase';
 
 import SourceCard from '../components/extraction/SourceCard';
 import ProjectNameForm from '../components/extraction/ProjectNameForm';
@@ -88,27 +88,27 @@ const DataExtraction: React.FC = () => {
     }
 
     try {
-      // Get the current user
-      const { data: { user } } = await supabase.auth.getUser();
-      
-      if (!user) {
-        toast.error('Please sign in to create a project');
-        return;
+      if (isSupabaseConfigured()) {
+        // Create the project in Supabase
+        const project = await createProject({
+          name: projectName,
+          status: 'in-progress',
+          sources,
+          user_id: 'demo-user' // This would be the actual user ID in production
+        });
       }
-
-      // Create the project in Supabase
-      const project = await createProject({
-        name: projectName,
-        status: 'in-progress',
-        sources,
-        user_id: user.id
-      });
 
       toast.success('Project created successfully!');
       navigate('/organize');
     } catch (error) {
       console.error('Error creating project:', error);
-      toast.error('Failed to create project. Please try again.');
+      if (isSupabaseConfigured()) {
+        toast.error('Failed to create project. Please try again.');
+      } else {
+        // Continue without saving to database
+        toast.success('Project created successfully! (Demo mode)');
+        navigate('/organize');
+      }
     }
   };
   
@@ -119,6 +119,13 @@ const DataExtraction: React.FC = () => {
         <p className="text-gray-600">
           Import your business data from Facebook, Google Business, or an existing website.
         </p>
+        {!isSupabaseConfigured() && (
+          <div className="mt-4 p-3 bg-blue-50 border border-blue-200 rounded-md">
+            <p className="text-sm text-blue-800">
+              Running in demo mode. Set up Supabase to save projects and enable authentication.
+            </p>
+          </div>
+        )}
       </div>
       
       <form onSubmit={handleSubmit} className="space-y-8">
